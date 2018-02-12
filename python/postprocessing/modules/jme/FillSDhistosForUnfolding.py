@@ -100,9 +100,9 @@ class softDropProducer(Module):
             for reco,gen in recoToGen.iteritems():
                 if reco == None :
                     continue
-                if event.reco : self.reco0.Fill(reco.m())
+                if event.reco != 0 : self.reco0.Fill(reco.m())
                 if gen != None:
-                    if event.response != 0 and event.gen : 
+                    if event.response != 0 and event.gen != 0 : 
                         #print "event.response is {}".format(event.response) 
                         self.resp0.Fill(reco.m(), gen.m() )
                         self.gen0.Fill(gen.m()) 
@@ -114,7 +114,7 @@ class softDropProducer(Module):
                         self.gen0.Fill(gen.m())
                         self.resp0.Fill(-1., gen.m() )
                         self.gen0.Fill(gen.m())                
-        elif (event.goodreco and not event.goodgen ) or len(gensdjets) < 1 :
+        elif (event.goodreco and not event.goodgen ) : # or (len(gensdjets) < 1   ) :
             #Fake
             if len(sdjets) < 1 : return False
             reco = sdjets[0]
@@ -122,7 +122,7 @@ class softDropProducer(Module):
             self.reco0.Fill(reco.m())
             #self.resp0.Fill( reco.p4().M(), -1. ) 
 
-        elif  (not event.goodreco and event.goodgen ) or len(sdjets) < 1 :   
+        elif  (not event.goodreco and event.goodgen ) : #or len(sdjets) < 1 :   
             #Miss
             if len(gensdjets) < 1 : return False
             gen = gensdjets[0]
