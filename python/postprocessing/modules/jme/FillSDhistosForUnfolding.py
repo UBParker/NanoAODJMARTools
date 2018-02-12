@@ -113,7 +113,7 @@ class softDropProducer(Module):
                     if event.miss : 
                         self.gen0.Fill(gen.m())
                         self.resp0.Fill(-1., gen.m() )
-                        self.gen0.Fill(gen.m())                
+                        self.miss0.Fill(gen.m())                
         elif (event.goodreco and not event.goodgen ) : # or (len(gensdjets) < 1   ) :
             #Fake
             if len(sdjets) < 1 : return False
