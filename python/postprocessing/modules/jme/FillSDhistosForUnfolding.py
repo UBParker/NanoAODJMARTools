@@ -1,12 +1,13 @@
 import ROOT
 import math, os
 import numpy as np
+import array as array
 import fastjet
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
-from PhysicsTools.NanoAODTools.postprocessing.tools import matchObjectCollection
+from PhysicsTools.NanoAODTools.postprocessing.tools import matchFastJetObjectCollection
 
 
 class softDropProducer(Module):
@@ -74,13 +75,13 @@ class softDropProducer(Module):
         for p in pfCands :
             pfCandsVec.push_back( ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E()) )
         sdjets = self.sd.result( pfCandsVec )
-        sdjets.sort(key=lambda x:x.p4().Perp(),reverse=True)
+        #sdjets.sort(key=lambda x:x.p4().Perp(),reverse=True)
 
         genCandsVec = ROOT.vector("TLorentzVector")()
         for p in genCands :
             genCandsVec.push_back( ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E()) )
         gensdjets = self.sd.result( genCandsVec )
-        gensdjets.sort(key=lambda x:x.p4().Perp(),reverse=True)
+        #gensdjets.sort(key=lambda x:x.p4().Perp(),reverse=True)
         
 
         if len(pfCands) == 0 :
@@ -95,61 +96,74 @@ class softDropProducer(Module):
         if not event.goodreco and not event.goodgen :
             return False
         if event.goodreco and event.goodgen :
-            recoToGen = matchObjectCollection( sdjets, gensdjets, dRmax=0.05)
+            recoToGen = matchFastJetObjectCollection( sdjets, gensdjets, dRmax=0.05)
             for reco,gen in recoToGen.iteritems():
                 if reco == None :
                     continue
-                if event.reco : self.reco0.Fill(reco.p4().M())
-                if event.response != 0 : self.resp0.Fill(reco.p4().M(), gen.p4().M() )
-                if event.fake : self.reco0.Fill(reco.p4().M())
-            for igen,gen in enumerate(genjets):
+                if event.reco : self.reco0.Fill(reco.m())
+                if gen != None:
+                    if event.response != 0 : 
+                       #print "event.response is {}".format(event.response) 
+                       self.resp0.Fill(reco.m(), gen.m() )
+                if event.fake : self.reco0.Fill(reco.m())
+            for igen,gen in enumerate(gensdjets):
                 if gen != None and gen not in recoToGen.values() :
-                    if event.gen : self.gen0.Fill(gen.p4().M())
-                    if event.response != 0 : self.resp0.Fill(-1., gen.p4().M() )
-                    if event.miss : self.gen0.Fill(gen.p4().M())                
+                    if event.gen : self.gen0.Fill(gen.m())
+                    if event.response != 0 : self.resp0.Fill(-1., gen.m() )
+                    if event.miss : self.gen0.Fill(gen.m())                
         elif (event.goodreco and not event.goodgen ) or len(gensdjets) < 1 :
             #Fake
+            if len(sdjets) < 1 : return False
             reco = sdjets[0]
-            self.fake0.Fill(reco.p4().M())
-            self.reco0.Fill(reco.p4().M())
+            self.fake0.Fill(reco.m())
+            self.reco0.Fill(reco.m())
             #self.resp0.Fill( reco.p4().M(), -1. ) 
 
         elif  (not event.goodreco and event.goodgen ) or len(sdjets) < 1 :   
             #Miss
+            if len(gensdjets) < 1 : return False
             gen = gensdjets[0]
-            SDmassGen = gen.p4().M()
-            self.miss0.Fill(gen.p4().M())
-            self.gen0.Fill(gen.p4().M())
-            self.resp0.Fill( -1.0, gen.p4().M() )
+            SDmassGen = gen.m()
+            self.miss0.Fill(gen.m())
+            self.gen0.Fill(gen.m())
+            self.resp0.Fill( -1.0, gen.m() )
     
-        '''
+        typeofill = ''
+        if event.miss : typeofill = 'miss'
+        if event.fake :typeofill = 'fake'
+        if event.reco and not event.fake : typeofill = 'reco'
+        if event.reco and event.gen : typeofill = 'gen'
         ## print "NANOAOD PF jets:"
         ## for i,jet in enumerate(jets):
         ##     print ' %5d: %6.2f %6.2f %6.2f %6.2f %6.2f' % (i, jet.pt, jet.eta, jet.phi, jet.mass, jet.msoftdrop)
-        print '-------'            
-        print "On-the-fly PF jets:"
-        for i,sdjet in enumerate(sdjets):
-            print ' %5d: %6.2f %6.2f %6.2f %6.2f' % (i, sdjet.perp(), sdjet.eta(), sdjet.phi(), sdjet.m())
-            print 'Subjets:'
-            subs = sdjet.pieces()
-            for j,sub in enumerate(subs):
-                print '      : %6.2f %6.2f %6.2f %6.2f' % (sub.perp(), sub.eta(), sub.phi(), sub.m())
+        if typeofill == 'fake' or  typeofill == 'reco':
+            print '-------'
+            print "filling Soft Drop {} histo with reco jet below".format(typeofill)      
+            print '-------'            
+            #print "On-the-fly PF jets:"
+            for i,sdjet in enumerate(sdjets):
+                print ' %5d: %6.2f %6.2f %6.2f %6.2f' % (i, sdjet.perp(), sdjet.eta(), sdjet.phi(), sdjet.m())
+                #print 'Subjets:'
+                #subs = sdjet.pieces()
+                #for j,sub in enumerate(subs):
+                #    print '      : %6.2f %6.2f %6.2f %6.2f' % (sub.perp(), sub.eta(), sub.phi(), sub.m())
 
-        print '-------'
-
-        ## print "NANOAOD Gen jets:"
-        ## for i,jet in enumerate(genJets):
-        ##     print ' %5d: %6.2f %6.2f %6.2f %6.2f' % (i, jet.pt, jet.eta, jet.phi, jet.mass)
-        print '-------'            
-        print "On-the-fly Gen jets:"
-        for i,sdjet in enumerate(sdjets):
-            print ' %5d: %6.2f %6.2f %6.2f %6.2f' % (i, sdjet.perp(), sdjet.eta(), sdjet.phi(), sdjet.m())
-            print 'Subjets:'
-            subs = sdjet.pieces()
-            for j,sub in enumerate(subs):
-                print '      : %6.2f %6.2f %6.2f %6.2f' % (sub.perp(), sub.eta(), sub.phi(), sub.m())
-        print '-------'
-        '''
+        if typeofill =='miss' or  typeofill == 'gen':
+            print '-------'
+            print "filling Soft Drop {} histo with gen jet below".format(typeofill)
+            ## print "NANOAOD Gen jets:"
+            ## for i,jet in enumerate(genJets):
+            ##     print ' %5d: %6.2f %6.2f %6.2f %6.2f' % (i, jet.pt, jet.eta, jet.phi, jet.mass)
+            print '-------'            
+            #print "On-the-fly Gen jets:"
+            for i,sdjet in enumerate(sdjets):
+                print ' %5d: %6.2f %6.2f %6.2f %6.2f' % (i, sdjet.perp(), sdjet.eta(), sdjet.phi(), sdjet.m())
+                #print 'Subjets:'
+            #subs = sdjet.pieces()
+            #for j,sub in enumerate(subs):
+            #    print '      : %6.2f %6.2f %6.2f %6.2f' % (sub.perp(), sub.eta(), sub.phi(), sub.m())
+            print '-------'
+       
             
         return True
 
