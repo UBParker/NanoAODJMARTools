@@ -109,11 +109,11 @@ class softDropProducer(Module):
                         self.resp0.Fill(reco.m(), gen.m() )
                         self.gen0.Fill(gen.m()) 
                         if self.verbose : print "Filling response and gen histo with gen SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV".format(gen.m(), gen.perp())
-                        return True
+                        #return True
                 if event.fake != 0 and event.gen == 0 : 
                     self.fake0.Fill(reco.m())
                     if self.verbose : print "Filling fake histo with SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV ".format(reco.m(), reco.perp())
-                    return True
+                    #return True
             for igen,gen in enumerate(gensdjets):
                 if gen != None and gen not in recoToGen.values() :
                     if event.miss and gen.perp() > 200. and  gen.m() > 1. : 
@@ -121,7 +121,7 @@ class softDropProducer(Module):
                         self.resp0.Fill(-1., gen.m() )
                         self.miss0.Fill(gen.m())        
                         if self.verbose : print "Filling miss/gen/response histo with gen SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV".format(gen.m(), gen.perp())        
-                        return True
+                        #return True
         elif (event.goodreco and not event.goodgen ) :
             #Fake
             if len(sdjets) < 1 : return False
@@ -133,7 +133,7 @@ class softDropProducer(Module):
                 self.reco0.Fill(reco.m())
                 if self.verbose : print "Filling reco fake histo with SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV".format(reco.m(), reco.perp())
                 #self.resp0.Fill( reco.p4().M(), -1. ) 
-                return True
+                #return True
         elif  (not event.goodreco and event.goodgen ) :
             #Miss
             if event.miss == 0 : return False
@@ -144,8 +144,8 @@ class softDropProducer(Module):
                 self.gen0.Fill(gen.m())
                 self.resp0.Fill( -1.0, gen.m() )
                 if self.verbose : print "Filling miss/gen/response histo with gen SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV".format(gen.m(), gen.perp())
-                return True
-        ''' 
+                #return True
+        
         typeofill = ''
         if event.miss : typeofill = 'miss'
         if event.fake :typeofill = 'fake'
@@ -183,7 +183,7 @@ class softDropProducer(Module):
             #for j,sub in enumerate(subs):
             #    print '      : %6.2f %6.2f %6.2f %6.2f' % (sub.perp(), sub.eta(), sub.phi(), sub.m())
             print '-------'
-        '''  
+         
             
         return True
 
