@@ -12,15 +12,13 @@ redir = 'root://cmsxrootd.fnal.gov/'
 
 files=[#redir +
     #"/store/user/asparker/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZandJetSkimNANAODreclusterDY1JetsToLLM-50TuneCP513TeV-madgraphMLM-pythia8/180207_192924/0000/94XNanoV0-DYtoLL-nanoTrees_96.root",
-   redir + "/store/user/asparker/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZplusJetSelection94XNANAODreclusterDY1JetsToLLM-50TuneCP513TeV-madgraphMLM-pythia8/180212_155223/0000/94XNanoV0-DYtoLL-nanoTrees_7.root",
-   redir + "/store/user/asparker/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZplusJetSelection94XNANAODreclusterDY1JetsToLLM-50TuneCP513TeV-madgraphMLM-pythia8/180212_155223/0000/94XNanoV0-DYtoLL-nanoTrees_8.root",
-   redir + "/store/user/asparker/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZplusJetSelection94XNANAODreclusterDY1JetsToLLM-50TuneCP513TeV-madgraphMLM-pythia8/180212_155223/0000/94XNanoV0-DYtoLL-nanoTrees_9.root",
-   redir + "/store/user/asparker/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZplusJetSelection94XNANAODreclusterDY1JetsToLLM-50TuneCP513TeV-madgraphMLM-pythia8/180212_155223/0000/94XNanoV0-DYtoLL-nanoTrees_10.root",
-   redir + "/store/user/asparker/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZplusJetSelection94XNANAODreclusterDY1JetsToLLM-50TuneCP513TeV-madgraphMLM-pythia8/180212_155223/0000/94XNanoV0-DYtoLL-nanoTrees_11.root",
-   redir + "/store/user/asparker/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZplusJetSelection94XNANAODreclusterDY1JetsToLLM-50TuneCP513TeV-madgraphMLM-pythia8/180212_155223/0000/94XNanoV0-DYtoLL-nanoTrees_12.root",
-
-
-
+#   redir + "/store/user/asparker/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZplusJetSelection94XNANAODreclusterDY1JetsToLLM-50TuneCP513TeV-madgraphMLM-pythia8/180212_155223/0000/94XNanoV0-DYtoLL-nanoTrees_7.root",
+#   redir + "/store/user/asparker/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZplusJetSelection94XNANAODreclusterDY1JetsToLLM-50TuneCP513TeV-madgraphMLM-pythia8/180212_155223/0000/94XNanoV0-DYtoLL-nanoTrees_8.root",
+#   redir + "/store/user/asparker/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZplusJetSelection94XNANAODreclusterDY1JetsToLLM-50TuneCP513TeV-madgraphMLM-pythia8/180212_155223/0000/94XNanoV0-DYtoLL-nanoTrees_9.root",
+#   redir + "/store/user/asparker/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZplusJetSelection94XNANAODreclusterDY1JetsToLLM-50TuneCP513TeV-madgraphMLM-pythia8/180212_155223/0000/94XNanoV0-DYtoLL-nanoTrees_10.root",
+#   redir + "/store/user/asparker/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZplusJetSelection94XNANAODreclusterDY1JetsToLLM-50TuneCP513TeV-madgraphMLM-pythia8/180212_155223/0000/94XNanoV0-DYtoLL-nanoTrees_11.root",
+#   redir + "/store/user/asparker/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZplusJetSelection94XNANAODreclusterDY1JetsToLLM-50TuneCP513TeV-madgraphMLM-pythia8/180212_155223/0000/94XNanoV0-DYtoLL-nanoTrees_12.root",
+    "/uscms/home/aparker/nobackup/nanoAod/NanoAODJMAR_V0/CMSSW_9_4_4/src/PhysicsTools/NanoAODJMAR/test/80XNanoV0-DYtoLL-nanoTrees.root"
 
    ]
 

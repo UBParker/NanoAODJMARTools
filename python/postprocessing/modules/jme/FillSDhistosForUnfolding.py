@@ -7,7 +7,7 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
-from PhysicsTools.NanoAODTools.postprocessing.tools import matchFastJetObjectCollection
+from PhysicsTools.NanoAODTools.postprocessing.toolsFJ import matchFastJetObjectCollection
 
 
 class softDropProducer(Module):
@@ -35,7 +35,7 @@ class softDropProducer(Module):
     def beginJob(self, histFile, histDirName):
         self.sd = ROOT.SoftDropWrapper(self.beta,self.zcut, self.R, self.ptmin)
         Module.beginJob(self, histFile, histDirName)
-        self.addObject(ROOT.TH1F('h_ak8sdm_'+self.bname,   'h_ak8sdm_'+self.bname, 25, 0, 250) )
+        #self.addObject(ROOT.TH1F('h_ak8sdm_'+self.bname,   'h_ak8sdm_'+self.bname, 25, 0, 250) )
         self.binsGen = array.array('d', [0., 1., 5., 10., 15., 20., 25., 30., 35., 40., 45., 50., 100.]) 
         self.nGen = len(self.binsGen) - 1
         self.binsDet = array.array('d', [0., 0.5, 1., 3., 5., 7.5, 10., 12.5, 15., 17.5, 20., 22.5, 25., 27.5, 30., 32.5, 35., 37.5, 40., 42.5, 45., 47.5, 50., 75., 100.])
@@ -55,7 +55,7 @@ class softDropProducer(Module):
         self.addObject(  self.gen0 )
         self.addObject( self.fake0 )
         self.addObject( self.miss0 )
-        
+        print "Create histograms"
 
     def endJob(self):
         Module.endJob(self)
@@ -65,6 +65,7 @@ class softDropProducer(Module):
         pass
     
     def analyze(self, event):
+        #print "analyze"
         """process event, return True (go to next module) or False (fail, go to next event)"""
         #jets = Collection(event, self.jetBranchName )
         #genJets = Collection(event, self.genJetBranchName )
@@ -75,76 +76,88 @@ class softDropProducer(Module):
         for p in pfCands :
             pfCandsVec.push_back( ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E()) )
         sdjets = self.sd.result( pfCandsVec )
-        #sdjets.sort(key=lambda x:x.p4().Perp(),reverse=True)
+       
+
+        gsdjets = [ x for x in sdjets if x.perp() > 200.  and abs(x.eta()) < 2.5 ]
+        gsdjets.sort(key=lambda x:x.perp(),reverse=True)
 
         genCandsVec = ROOT.vector("TLorentzVector")()
         for p in genCands :
             genCandsVec.push_back( ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E()) )
         gensdjets = self.sd.result( genCandsVec )
-        #gensdjets.sort(key=lambda x:x.p4().Perp(),reverse=True)
+      
+        ggensdjets= [ x for x in gensdjets if x.perp() > 200.*0.8   ]
+        ggensdjets.sort(key=lambda x:x.perp(),reverse=True)
         
-
-        if len(pfCands) == 0 :
+        if len(pfCands) == 0 and len(genCands) ==0 :
             return False
         # Read the flags written by event selector 
         # 
         if event.miss < 1 and event.reco < 1 and event.fake < 1 :
             return False
-        print 'Event : ', event.event
+        if len(ggensdjets) < 1 and len(gsdjets) < 1 :
+            return False
+
+        print 'Event : {} goodgen : {} goodreco : {}  gen: {} miss: {} reco : {} fake : {}  response : {}  '.format( event.event , event.goodgen , event.goodreco, event.gen, event.miss, event.reco, event.fake, event.response )
         
                
         if not event.goodreco and not event.goodgen :
             return False
         if event.goodreco and event.goodgen :
-            recoToGen = matchFastJetObjectCollection( sdjets, gensdjets, dRmax=0.05)
+            filled = False
+            recoToGen = matchFastJetObjectCollection( gsdjets, ggensdjets, dRmax=0.05)
+            print recoToGen
             for reco,gen in recoToGen.iteritems():
-                if reco == None or reco.perp() < 200. or reco.m() < 1.:
+                if filled : break
+                if reco == None or reco.m() < .01 :
                     continue
                 if event.reco != 0 : 
                     self.reco0.Fill(reco.m())
                     if self.verbose : print "Filling reco histo with SD jet of mass {:3.0f} GeV and Pt of {:3.0f} GeV".format(reco.m(), reco.perp())
-                if gen != None and gen.perp() > 200. * 0.8 and  gen.m() > 1. :
-                    if event.response != 0 and event.gen != 0 : 
-                        #print "event.response is {}".format(event.response) 
+                if gen != None :
+                    if gen.m() < 0.01 : continue
+                    if event.response != 0  : 
                         self.resp0.Fill(reco.m(), gen.m() )
                         self.gen0.Fill(gen.m()) 
                         if self.verbose : print "Filling response and gen histo with gen SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV".format(gen.m(), gen.perp())
-                        #return True
-                if event.fake != 0 and event.gen == 0 : 
+                        filled = True #return True
+                if event.fake != 0  :
+                    if filled : continue  
                     self.fake0.Fill(reco.m())
                     if self.verbose : print "Filling fake histo with SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV ".format(reco.m(), reco.perp())
-                    #return True
+                    filled = True #return True
             for igen,gen in enumerate(gensdjets):
+                if filled : return True
                 if gen != None and gen not in recoToGen.values() :
-                    if event.miss and gen.perp() > 200. and  gen.m() > 1. : 
+                    if event.miss != 0 and gen.m() > 1. :
                         self.gen0.Fill(gen.m())
                         self.resp0.Fill(-1., gen.m() )
                         self.miss0.Fill(gen.m())        
                         if self.verbose : print "Filling miss/gen/response histo with gen SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV".format(gen.m(), gen.perp())        
-                        #return True
+                        filled = True #return True
+            if filled : return True 
         elif (event.goodreco and not event.goodgen ) :
             #Fake
-            if len(sdjets) < 1 : return False
-            if event.fake == 0 : return False
-            for reco in sdjets:
-
-                if reco.perp() < 200. or  reco.m() < 1.: continue
+            if len(gsdjets) < 1 : return False
+            if event.fake == 0  : return False
+            for reco in gsdjets:
+                if reco.m() < .01 : continue #return False
                 self.fake0.Fill(reco.m())
                 self.reco0.Fill(reco.m())
                 if self.verbose : print "Filling reco fake histo with SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV".format(reco.m(), reco.perp())
                 #self.resp0.Fill( reco.p4().M(), -1. ) 
-                #return True
+                return True
         elif  (not event.goodreco and event.goodgen ) :
             #Miss
             if event.miss == 0 : return False
-            if len(gensdjets) < 1 : return False
-            for gen in gensdjets :
-                if gen.perp() < 200.  or  gen.m() < 1. :continue 
+            if len(ggensdjets) < 1 : return False
+            for gen in ggensdjets :
+                if gen.m() < .01 : continue
                 self.miss0.Fill(gen.m())
                 self.gen0.Fill(gen.m())
                 self.resp0.Fill( -1.0, gen.m() )
                 if self.verbose : print "Filling miss/gen/response histo with gen SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV".format(gen.m(), gen.perp())
-                #return True
+                return True
         
         typeofill = ''
         if event.miss : typeofill = 'miss'
