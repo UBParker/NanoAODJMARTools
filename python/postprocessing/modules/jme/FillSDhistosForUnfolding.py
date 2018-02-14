@@ -72,31 +72,14 @@ class softDropProducer(Module):
         pfCands = Collection(event, self.pfCandsBranchName )
         genCands = Collection(event, self.genCandsBranchName )
 
-        pfCandsVec = ROOT.vector("TLorentzVector")()
-        for p in pfCands :
-            pfCandsVec.push_back( ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E()) )
-        sdjets = self.sd.result( pfCandsVec )
-       
 
-        gsdjets = [ x for x in sdjets if x.perp() > 200.  and abs(x.eta()) < 2.5 ]
-        gsdjets.sort(key=lambda x:x.perp(),reverse=True)
-
-        genCandsVec = ROOT.vector("TLorentzVector")()
-        for p in genCands :
-            genCandsVec.push_back( ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E()) )
-        gensdjets = self.sd.result( genCandsVec )
-      
-        ggensdjets= [ x for x in gensdjets if x.perp() > 200.*0.8   ]
-        ggensdjets.sort(key=lambda x:x.perp(),reverse=True)
-        
         if len(pfCands) == 0 and len(genCands) ==0 :
             return False
         # Read the flags written by event selector 
         # 
         if event.miss < 1 and event.reco < 1 and event.fake < 1 :
             return False
-        if len(ggensdjets) < 1 and len(gsdjets) < 1 :
-            return False
+
 
         print 'Event : {} goodgen : {} goodreco : {}  gen: {} miss: {} reco : {} fake : {}  response : {}  '.format( event.event , event.goodgen , event.goodreco, event.gen, event.miss, event.reco, event.fake, event.response )
         
@@ -104,6 +87,32 @@ class softDropProducer(Module):
         if not event.goodreco and not event.goodgen :
             return False
         if event.goodreco and event.goodgen :
+            
+            goodrecoP4 = ROOT.TLorentzVector( event.goodrecojet0_pt , event.goodrecojet0_eta , event.goodrecojet0_phi , event.goodrecojet0_m )
+            
+            pfCandsVec = ROOT.vector("TLorentzVector")()
+            for p in pfCands :
+                t = ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E())
+                drt = goodrecoP4.DeltaR(t) 
+                if drt < 0.8 :
+                   pfCandsVec.push_back( t )
+                
+            sdjets = self.sd.result( pfCandsVec )
+            gsdjets = [ x for x in sdjets if x.perp() > 200.  and abs(x.eta()) < 2.5 ]
+            gsdjets.sort(key=lambda x:x.perp(),reverse=True)
+
+            goodgenP4 = ROOT.TLorentzVector( event.goodgenjet0_pt , event.goodgenjet0_eta , event.goodgenjet0_phi , event.goodgenjet0_m )
+            genCandsVec = ROOT.vector("TLorentzVector")()
+            for p in genCands :
+                t = ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E())
+                drt = goodgenP4.DeltaR(t)
+                if drt < 0.8 : genCandsVec.push_back( t )
+            gensdjets = self.sd.result( genCandsVec )
+            ggensdjets= [ x for x in gensdjets if x.perp() > 200.*0.8   ]
+            ggensdjets.sort(key=lambda x:x.perp(),reverse=True)
+
+            if len(ggensdjets) < 1 and len(gsdjets) < 1 :
+                return False
             filled = False
             recoToGen = matchFastJetObjectCollection( gsdjets, ggensdjets, dRmax=0.05)
             print recoToGen
@@ -138,10 +147,23 @@ class softDropProducer(Module):
             if filled : return True 
         elif (event.goodreco and not event.goodgen ) :
             #Fake
+            goodrecoP4 = ROOT.TLorentzVector( event.goodrecojet0_pt , event.goodrecojet0_eta , event.goodrecojet0_phi , event.goodrecojet0_m )
+            
+            pfCandsVec = ROOT.vector("TLorentzVector")()
+            for p in pfCands :
+                t = ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E())
+                drt = goodrecoP4.DeltaR(t) 
+                if drt < 0.8 :
+                   pfCandsVec.push_back( t )
+                
+            sdjets = self.sd.result( pfCandsVec )
+            gsdjets = [ x for x in sdjets if x.perp() > 200.  and abs(x.eta()) < 2.5 ]
+            gsdjets.sort(key=lambda x:x.perp(),reverse=True)
+            
             if len(gsdjets) < 1 : return False
             if event.fake == 0  : return False
             for reco in gsdjets:
-                if reco.m() < .01 : continue #return False
+                #if reco.m() < .01 : continue #return False
                 self.fake0.Fill(reco.m())
                 self.reco0.Fill(reco.m())
                 if self.verbose : print "Filling reco fake histo with SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV".format(reco.m(), reco.perp())
@@ -149,10 +171,20 @@ class softDropProducer(Module):
                 return True
         elif  (not event.goodreco and event.goodgen ) :
             #Miss
+            goodgenP4 = ROOT.TLorentzVector( event.goodgenjet0_pt , event.goodgenjet0_eta , event.goodgenjet0_phi , event.goodgenjet0_m )
+            genCandsVec = ROOT.vector("TLorentzVector")()
+            for p in genCands :
+                t = ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E())
+                drt = goodgenP4.DeltaR(t)
+                if drt < 0.8 : genCandsVec.push_back( t )
+            gensdjets = self.sd.result( genCandsVec )
+            ggensdjets= [ x for x in gensdjets if x.perp() > 200.*0.8   ]
+            ggensdjets.sort(key=lambda x:x.perp(),reverse=True)
+            
             if event.miss == 0 : return False
             if len(ggensdjets) < 1 : return False
             for gen in ggensdjets :
-                if gen.m() < .01 : continue
+                #if gen.m() < .01 : continue
                 self.miss0.Fill(gen.m())
                 self.gen0.Fill(gen.m())
                 self.resp0.Fill( -1.0, gen.m() )
