@@ -77,7 +77,7 @@ class softDropProducer(Module):
             return False
         # Read the flags written by event selector 
         # 
-        if event.miss < 1 and event.reco < 1 and event.fake < 1 :
+        if event.miss < 1 and event.reco < 1  :
             return False
 
 
@@ -113,38 +113,36 @@ class softDropProducer(Module):
 
             if len(ggensdjets) < 1 and len(gsdjets) < 1 :
                 return False
-            filled = False
+          
             recoToGen = matchFastJetObjectCollection( gsdjets, ggensdjets, dRmax=0.05)
             print recoToGen
             for reco,gen in recoToGen.iteritems():
-                if filled : break
-                if reco == None or reco.m() < .01 :
+          
+                if reco == None :
                     continue
-                if event.reco != 0 : 
+                if event.reco > 0 : 
                     self.reco0.Fill(reco.m())
                     if self.verbose : print "Filling reco histo with SD jet of mass {:3.0f} GeV and Pt of {:3.0f} GeV".format(reco.m(), reco.perp())
-                if gen != None :
-                    if gen.m() < 0.01 : continue
-                    if event.response != 0  : 
+                if gen != None :          
+                    if event.response > 0  : 
                         self.resp0.Fill(reco.m(), gen.m() )
                         self.gen0.Fill(gen.m()) 
                         if self.verbose : print "Filling response and gen histo with gen SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV".format(gen.m(), gen.perp())
-                        filled = True #return True
-                if event.fake != 0  :
-                    if filled : continue  
+                  
+                if event.fake > 0  :
+                  
                     self.fake0.Fill(reco.m())
                     if self.verbose : print "Filling fake histo with SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV ".format(reco.m(), reco.perp())
-                    filled = True #return True
+                  
             for igen,gen in enumerate(gensdjets):
-                if filled : return True
                 if gen != None and gen not in recoToGen.values() :
-                    if event.miss != 0 and gen.m() > 1. :
+                    if event.miss > 0 :
                         self.gen0.Fill(gen.m())
                         self.resp0.Fill(-1., gen.m() )
                         self.miss0.Fill(gen.m())        
                         if self.verbose : print "Filling miss/gen/response histo with gen SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV".format(gen.m(), gen.perp())        
-                        filled = True #return True
-            if filled : return True 
+                  
+           
         elif (event.goodreco and not event.goodgen ) :
             #Fake
             goodrecoP4 = ROOT.TLorentzVector( event.goodrecojet0_pt , event.goodrecojet0_eta , event.goodrecojet0_phi , event.goodrecojet0_m )
@@ -161,7 +159,7 @@ class softDropProducer(Module):
             gsdjets.sort(key=lambda x:x.perp(),reverse=True)
             
             if len(gsdjets) < 1 : return False
-            if event.fake == 0  : return False
+            if event.fake < 0  : return False
             for reco in gsdjets:
                 #if reco.m() < .01 : continue #return False
                 self.fake0.Fill(reco.m())
@@ -181,7 +179,7 @@ class softDropProducer(Module):
             ggensdjets= [ x for x in gensdjets if x.perp() > 200.*0.8   ]
             ggensdjets.sort(key=lambda x:x.perp(),reverse=True)
             
-            if event.miss == 0 : return False
+            if event.miss <  0 : return False
             if len(ggensdjets) < 1 : return False
             for gen in ggensdjets :
                 #if gen.m() < .01 : continue
@@ -192,10 +190,10 @@ class softDropProducer(Module):
                 return True
         
         typeofill = ''
-        if event.miss : typeofill = 'miss'
-        if event.fake :typeofill = 'fake'
-        if event.reco and not event.fake : typeofill = 'reco'
-        if event.reco and event.gen : typeofill = 'gen'
+        if event.miss> 0 : typeofill = 'miss'
+        if event.fake >0:typeofill = 'fake'
+        if event.reco>0 and not event.fake<0 : typeofill = 'reco'
+        if event.reco>0 and event.gen>0 : typeofill = 'gen'
         ## print "NANOAOD PF jets:"
         ## for i,jet in enumerate(jets):
         ##     print ' %5d: %6.2f %6.2f %6.2f %6.2f %6.2f' % (i, jet.pt, jet.eta, jet.phi, jet.mass, jet.msoftdrop)
