@@ -66,19 +66,21 @@ class softDropProducer(Module):
     
     def analyze(self, event):
         #print "analyze"
+        isMC = event.run == 1
         """process event, return True (go to next module) or False (fail, go to next event)"""
         #jets = Collection(event, self.jetBranchName )
         #genJets = Collection(event, self.genJetBranchName )
         pfCands = Collection(event, self.pfCandsBranchName )
-        genCands = Collection(event, self.genCandsBranchName )
-
+        if isMC : genCands = Collection(event, self.genCandsBranchName )
+        else : 
+            genCands = [None]
 
         if len(pfCands) == 0 and len(genCands) ==0 :
             return False
         # Read the flags written by event selector 
         # 
-        if event.miss < 1 and event.reco < 1  :
-            return False
+        #if event.miss < 1 and event.reco < 1  :
+        #    return False
 
 
         print 'Event : {} goodgen : {} goodreco : {}  gen: {} miss: {} reco : {} fake : {}  response : {}  '.format( event.event , event.goodgen , event.goodreco, event.gen, event.miss, event.reco, event.fake, event.response )
@@ -86,64 +88,65 @@ class softDropProducer(Module):
                
         if not event.goodreco and not event.goodgen :
             return False
-        if event.goodreco and event.goodgen :
+        if isMC :
+            if event.goodreco and event.goodgen :
             
-            goodrecoP4 = ROOT.TLorentzVector( event.goodrecojet0_pt , event.goodrecojet0_eta , event.goodrecojet0_phi , event.goodrecojet0_m )
+                goodrecoP4 = ROOT.TLorentzVector( event.goodrecojet0_pt , event.goodrecojet0_eta , event.goodrecojet0_phi , event.goodrecojet0_m )
             
-            pfCandsVec = ROOT.vector("TLorentzVector")()
-            for p in pfCands :
-                t = ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E())
-                drt = goodrecoP4.DeltaR(t) 
-                if drt < 0.8 :
-                   pfCandsVec.push_back( t )
+                pfCandsVec = ROOT.vector("TLorentzVector")()
+                for p in pfCands :
+                    t = ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E())
+                    drt = goodrecoP4.DeltaR(t) 
+                    if drt < 0.8 :
+                        pfCandsVec.push_back( t )
                 
-            sdjets = self.sd.result( pfCandsVec )
-            gsdjets = [ x for x in sdjets if x.perp() > 200.  and abs(x.eta()) < 2.5 ]
-            gsdjets.sort(key=lambda x:x.perp(),reverse=True)
+                sdjets = self.sd.result( pfCandsVec )
+                gsdjets = [ x for x in sdjets if x.perp() > 200.  and abs(x.eta()) < 2.5 ]
+                gsdjets.sort(key=lambda x:x.perp(),reverse=True)
 
-            goodgenP4 = ROOT.TLorentzVector( event.goodgenjet0_pt , event.goodgenjet0_eta , event.goodgenjet0_phi , event.goodgenjet0_m )
-            genCandsVec = ROOT.vector("TLorentzVector")()
-            for p in genCands :
-                t = ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E())
-                drt = goodgenP4.DeltaR(t)
-                if drt < 0.8 : genCandsVec.push_back( t )
-            gensdjets = self.sd.result( genCandsVec )
-            ggensdjets= [ x for x in gensdjets if x.perp() > 200.*0.8   ]
-            ggensdjets.sort(key=lambda x:x.perp(),reverse=True)
+                goodgenP4 = ROOT.TLorentzVector( event.goodgenjet0_pt , event.goodgenjet0_eta , event.goodgenjet0_phi ,  event.goodgenjet0_m )
+                genCandsVec = ROOT.vector("TLorentzVector")()
+                for p in genCands :
+                    t = ROOT.TLorentzVector( p.p4().Px(), p.p4().Py(), p.p4().Pz(), p.p4().E())
+                    drt = goodgenP4.DeltaR(t)
+                    if drt < 0.8 : genCandsVec.push_back( t )
+                gensdjets = self.sd.result( genCandsVec )
+                ggensdjets= [ x for x in gensdjets if x.perp() > 200.*0.8   ]
+                ggensdjets.sort(key=lambda x:x.perp(),reverse=True)
 
-            if len(ggensdjets) < 1 and len(gsdjets) < 1 :
-                return False
+                if len(ggensdjets) < 1 and len(gsdjets) < 1 :
+                    return False
           
-            recoToGen = matchFastJetObjectCollection( gsdjets, ggensdjets, dRmax=0.05)
-            print recoToGen
-            for reco,gen in recoToGen.iteritems():
+                recoToGen = matchFastJetObjectCollection( gsdjets, ggensdjets, dRmax=0.05)
+                print recoToGen
+                for reco,gen in recoToGen.iteritems():
           
-                if reco == None :
-                    continue
-                if event.reco > 0 : 
-                    self.reco0.Fill(reco.m())
-                    if self.verbose : print "Filling reco histo with SD jet of mass {:3.0f} GeV and Pt of {:3.0f} GeV".format(reco.m(), reco.perp())
-                if gen != None :          
-                    if event.response > 0  : 
-                        self.resp0.Fill(reco.m(), gen.m() )
-                        self.gen0.Fill(gen.m()) 
-                        if self.verbose : print "Filling response and gen histo with gen SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV".format(gen.m(), gen.perp())
+                    if reco == None :
+                        continue
+                    if event.reco > 0 : 
+                        self.reco0.Fill(reco.m())
+                        if self.verbose : print "Filling reco histo with SD jet of mass {:3.0f} GeV and Pt of {:3.0f} GeV".format(reco.m(), reco.perp())
+                    if gen != None :          
+                        if event.response > 0  : 
+                            self.resp0.Fill(reco.m(), gen.m() )
+                            self.gen0.Fill(gen.m()) 
+                            if self.verbose : print "Filling response and gen histo with gen SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV".format(gen.m(), gen.perp())
                   
-                if event.fake > 0  :
+                    if event.fake > 0  :
                   
-                    self.fake0.Fill(reco.m())
-                    if self.verbose : print "Filling fake histo with SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV ".format(reco.m(), reco.perp())
+                        self.fake0.Fill(reco.m())
+                        if self.verbose : print "Filling fake histo with SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV ".format(reco.m(), reco.perp())
                   
-            for igen,gen in enumerate(gensdjets):
-                if gen != None and gen not in recoToGen.values() :
-                    if event.miss > 0 :
-                        self.gen0.Fill(gen.m())
-                        self.resp0.Fill(-1., gen.m() )
-                        self.miss0.Fill(gen.m())        
-                        if self.verbose : print "Filling miss/gen/response histo with gen SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV".format(gen.m(), gen.perp())        
+                for igen,gen in enumerate(gensdjets):
+                    if gen != None and gen not in recoToGen.values() :
+                        if event.miss > 0 :
+                            self.gen0.Fill(gen.m())
+                            self.resp0.Fill(-1., gen.m() )
+                            self.miss0.Fill(gen.m())        
+                            if self.verbose : print "Filling miss/gen/response histo with gen SD jet of mass {:3.0f} GeV  and Pt of {:3.0f} GeV".format(gen.m(), gen.perp())        
                   
            
-        elif (event.goodreco and not event.goodgen ) :
+        if (event.goodreco and not event.goodgen ) :
             #Fake
             goodrecoP4 = ROOT.TLorentzVector( event.goodrecojet0_pt , event.goodrecojet0_eta , event.goodrecojet0_phi , event.goodrecojet0_m )
             
@@ -234,3 +237,5 @@ class softDropProducer(Module):
 
 sdb0 = lambda : softDropProducer(beta=0.0, zcut=0.1, bname="sdb0")
 sdb1 = lambda : softDropProducer(beta=1.0, zcut=0.1, bname="sdb1")
+sdb0z0p05 = lambda : softDropProducer(beta=0.0, zcut=0.05, bname="sdb0z0p05")
+sdb0z0p15 = lambda : softDropProducer(beta=0.0, zcut=0.15, bname="sdb0z0p15")

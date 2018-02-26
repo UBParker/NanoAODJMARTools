@@ -18,13 +18,15 @@ files=[#redir +
 #   redir + "/store/user/asparker/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZplusJetSelection94XNANAODreclusterDY1JetsToLLM-50TuneCP513TeV-madgraphMLM-pythia8/180212_155223/0000/94XNanoV0-DYtoLL-nanoTrees_10.root",
 #   redir + "/store/user/asparker/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZplusJetSelection94XNANAODreclusterDY1JetsToLLM-50TuneCP513TeV-madgraphMLM-pythia8/180212_155223/0000/94XNanoV0-DYtoLL-nanoTrees_11.root",
 #   redir + "/store/user/asparker/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/ZplusJetSelection94XNANAODreclusterDY1JetsToLLM-50TuneCP513TeV-madgraphMLM-pythia8/180212_155223/0000/94XNanoV0-DYtoLL-nanoTrees_12.root",
-    "/uscms/home/aparker/nobackup/nanoAod/NanoAODJMAR_V0/CMSSW_9_4_4/src/PhysicsTools/NanoAODJMAR/test/80XNanoV0-DYtoLL-nanoTrees.root"
-
+#    "/uscms/home/aparker/nobackup/nanoAod/NanoAODJMAR_V0/CMSSW_9_4_4/src/PhysicsTools/NanoAODJMAR/test/80XNanoV0-DYtoLL-nanoTrees.root"
+#redir + "/store/user/asparker/NANOAODrecluster80X_goodSkimZjets/SkimZjets_80XNanoAODrecluster_ext1_DYJetsToLL_M-50_TuneCUETP8M1-nanoTrees.root"
+#redir + "/store/user/asparker/NANOAODrecluster80X_goodSkimZjets/SkimZjets_80XNanoAODrecluster_SingleMuon2016B-07Aug17_ver2-v1-nanoTrees.root"
+redir + '/store/user/asparker/NANOAODrecluster80X_goodSkimZjets/SkimZjetsMuonsonly_80XNanoAODrecluster_ext1_DYJetsToLL_M-50_TuneCUETP8M1-nanoTrees.root'
    ]
 
 import random
 random.seed(12345)
 
-p1=PostProcessor(".",files,'','',[sdb0()],provenance=False, noOut=True, histFileName='sdb0.root', histDirName='sdb0', postfix='plots')
+p1=PostProcessor(".",files,'','',[sdb0()],provenance=False, noOut=True, histFileName='sdb0_SkimZjetsMuonsonly_80XNanoAODrecluster_ext1_DYJetsToLL_M-50_TuneCUETP8M1.root', histDirName='sdb0', postfix='plots')
 
 p1.run()
