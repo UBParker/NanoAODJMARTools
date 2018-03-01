@@ -33,7 +33,7 @@ Now make a `CMSSW` working area and get this code:
 cmsrel CMSSW_9_4_4
 cd CMSSW_9_4_4/src
 cmsenv
-git clone https://github.com/cms-jet/NanoAODJMARTools.git PhysicsTools/NanoAODJMARTools
+git clone https://github.com/UBParker/NanoAODJMARTools.git PhysicsTools/NanoAODJMARTools
 ```
 
 
