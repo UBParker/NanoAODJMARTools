@@ -7,7 +7,7 @@ SoftDropWrapper::SoftDropWrapper(float beta, float zcut, float R, float ptmin) :
 }
  
 SoftDropWrapper::SoftDropWrapper() :
-  fastjet::contrib::SoftDrop(0.0,0.1), R_(0.8), ptmin_(200)
+  fastjet::contrib::SoftDrop(0.0,0.1), R_(0.8), ptmin_(0.0)
 {
 }
 

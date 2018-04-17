@@ -8,25 +8,8 @@ You should first follow the directions outlined in the [NanoAODJMAR](https://git
 
 ## JMAR NANOAOD Analysis : With CMSSW
 
-First, set up a new fastjet and fastjet-contrib. If you are working on `cmslpc` you can use my fastjet at `/uscms_data/d2/rappocc/fastjet/bare/install_330`. Otherwise to make your own you need to:
-
-```
-wget http://fastjet.fr/repo/fastjet-3.3.0.tar.gz
-tar -zxvf fastjet-3.3.0.tar.gz
-cd fastjet-3.3.0
-./configure  --enable-pyext   --prefix=/my/working/dir/for/fastjet
-make -j 10
-make install
-
-
-wget http://fastjet.hepforge.org/contrib/downloads/fjcontrib-1.032.tar.gz
-cd fjcontrib-1.032
-./configure --fastjet-config=/my/working/dir/for/fastjet/bin/fastjet-config
-make -j 10
-make fragile-shared
-make install
-make fragile-shared-install
-```
+First, set up a new fastjet and fastjet-contrib. You need at least `fastjet-3.3.0`. This is in 
+`/cvmfs/cms.cern.ch/slc6_amd64_gcc630/external/fastjet/3.3.0/` and `/cvmfs/cms.cern.ch/slc6_amd64_gcc630/external/fastjet-contrib/1.033/`. 
 
 Now make a `CMSSW` working area and get this code:
 ```
@@ -43,6 +26,13 @@ You can then use the following XML files to go into `$CMSSW_BASE/config/toolbox/
 cp $CMSSW_BASE/src/PhysicsTools/NanoAODJMARTools/xmlfiles/* $CMSSW_BASE/config/toolbox/$SCRAM_ARCH/tools/selected/
 scram setup fastjet
 scram setup fastjet-contrib
+```
+
+Add fastjet to your python path:
+```
+setenv PYTHONPATH /uscms_data/d2/rappocc/fastjet/bare/install_330/lib/python2.7/site-packages:$PYTHONPATH
+
+(or export in bash)
 ```
 
 

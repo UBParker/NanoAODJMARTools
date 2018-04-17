@@ -6,10 +6,11 @@
     <lib name="siscone_spherical"/>
     <lib name="fastjet"/>
     <client>
-      <environment name="FASTJET_BASE" default="/uscms_data/d2/rappocc/fastjet/bare/install_330"/>
+      <environment name="FASTJET_BASE" default="/cvmfs/cms.cern.ch/slc6_amd64_gcc630/external/fastjet/3.3.0-omkpbe"/>
       <environment name="LIBDIR" default="$FASTJET_BASE/lib"/>
       <environment name="INCLUDE" default="$FASTJET_BASE/include"/>      
     </client>
     <runtime name="ROOT_INCLUDE_PATH" value="$INCLUDE" type="path"/>
+    <runtime name="PYTHONPATH" value="$FASTJET_BASE/lib/python2.7/site-packages" type="path"/>
     <use name="root_cxxdefaults"/>
   </tool>
